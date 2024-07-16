@@ -1,13 +1,17 @@
+from django.db import models
 from datetime import datetime
 
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
 
 
 class BaseCategoryGenreModel(models.Model):
     """Базовая модель для категорий и жанров."""
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField('Слаг', max_length=50, unique=True)
+    name = models.CharField(
+        'Название', max_length=256
+    )
+    slug = models.SlugField(
+        'Слаг', max_length=50, unique=True
+    )
 
     class Meta:
         ordering = ('name',)
