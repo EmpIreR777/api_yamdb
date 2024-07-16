@@ -4,6 +4,12 @@ attrs==23.2.0
 certifi==2024.7.4
 charset-normalizer==2.0.12
 colorama==0.4.6
+asgiref==3.8.1
+atomicwrites==1.4.1
+attrs==23.2.0
+certifi==2024.7.4
+charset-normalizer==2.0.12
+colorama==0.4.6
 Django==3.2
 djangorestframework==3.12.4
 djangorestframework-simplejwt==5.3.1

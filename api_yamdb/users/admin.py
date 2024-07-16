@@ -1,10 +1,18 @@
-# from django.contrib import admin
-# from django.contrib.auth.admin import UserAdmin
+from django.contrib import admin
 
-# from .models import CustomUser
+from reviews.models import User
 
-# UserAdmin.fieldsets += (
-#     ('Extra Fields', {'fields': ('role', 'bio')}),
-# )
 
-# admin.site.register(CustomUser, UserAdmin)
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'username',
+        'email',
+        'role',
+        'bio',
+        'first_name',
+        'last_name',
+
+    )
+    search_fields = ('username', 'role',)
+    list_filter = ('username',)
