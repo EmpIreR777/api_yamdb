@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -45,7 +44,6 @@ class Genre(models.Model):
     def __str__(self):
         return self.name
 
-
 class Title(models.Model):
     """Модель произведения."""
 
@@ -54,7 +52,7 @@ class Title(models.Model):
         'Год выпуска',
         validators=[
             MaxValueValidator(
-                datetime.now().year,
+                timezone.now().year,
                 'Год выпуска не может быть больше текущего'
             )
         ],
