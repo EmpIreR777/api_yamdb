@@ -3,11 +3,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Review(models.Model):
-    title = models.ForeignKey(
-        Title, on_delete=models.CASCADE,
-        related_name='reviews',
-        verbose_name='творчество'
-    )
+    # title = models.ForeignKey(
+    #     Title, on_delete=models.CASCADE,
+    #     related_name='reviews',
+    #     verbose_name='творчество'
+    # )
     text = models.CharField(
         max_length=200
     )
@@ -26,10 +26,10 @@ class Review(models.Model):
         auto_now_add=True
     )
 
-    class Meta:
-        vebrose_name = 'Отзыв'
-        vebrose_name_plural = 'Отзывы'
-        ordering = ('-pub_date',)
+    # class Meta:
+    #     vebrose_name = 'Отзыв'
+    #     vebrose_name_plural = 'Отзывы'
+    #     ordering = ('-pub_date',)
 
     def __str__(self):
         return self.title[:40]
@@ -55,9 +55,9 @@ class Comment(models.Model):
         auto_now_add=True
     )
 
-    class Meta:
-        vebrose_name = 'Комментарий'
-        vebrose_name_plural = 'Комментарии'
+    # class Meta:
+    #     vebrose_name = 'Комментарий'
+    #     vebrose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text[:40]
