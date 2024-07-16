@@ -32,7 +32,6 @@ class Genre(models.Model):
         return self.slug
 
 
-
 class Title(models.Model):
     """Модель произведения."""
 
