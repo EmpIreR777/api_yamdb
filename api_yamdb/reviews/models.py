@@ -104,7 +104,6 @@ class Review(models.Model):
         error_messages={'validators': 'от 1 до 10'},
     )
     pub_date = models.DateTimeField(
-    pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True
     )
