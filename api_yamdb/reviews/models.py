@@ -4,36 +4,38 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
-class BaseCategoryGenreModel(models.Model):
-    """Базовая модель для категорий и жанров."""
+class Category(models.Model):
+    """Модель категорий произведения."""
     name = models.CharField('Название', max_length=256)
     slug = models.SlugField('Слаг', max_length=50, unique=True)
 
     class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
         ordering = ('name',)
 
     def __str__(self):
         return self.slug
 
 
-class Category(BaseCategoryGenreModel):
-    """Модель категорий произведения."""
-
-    class Meta:
-        vebrose_name = 'Категория'
-        vebrose_name_plural = 'Категории'
-
-
-class Genre(BaseCategoryGenreModel):
+class Genre(models.Model):
     """Модель жанров произведения."""
+    name = models.CharField('Название', max_length=256)
+    slug = models.SlugField('Слаг', max_length=50, unique=True)
 
     class Meta:
-        vebrose_name = 'Жанр'
-        vebrose_name_plural = 'Жанры'
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+        ordering = ('name',)
+
+    def __str__(self):
+        return self.slug
+
 
 
 class Title(models.Model):
     """Модель произведения."""
+
     name = models.CharField('Название', max_length=256)
     year = models.IntegerField(
         'Год выпуска',
@@ -47,7 +49,6 @@ class Title(models.Model):
     description = models.TextField('Описание', null=True, blank=True)
     genre = models.ManyToManyField(
         Genre,
-        on_delete=models.SET_NULL,
         related_name='titles',
         verbose_name='Жанр'
     )
@@ -55,12 +56,13 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         related_name='titles',
-        verbose_name='Категория'
+        verbose_name='Категория',
+        null=True
     )
 
     class Meta:
-        vebrose_name = 'Произведение'
-        vebrose_name_plural = 'Произведения'
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
         ordering = ('year',)
 
     def __str__(self):
@@ -86,14 +88,14 @@ class Review(models.Model):
         validators=(MinValueValidator(1), MaxValueValidator(10)),
         error_messages={'validators': 'от 1 до 10'}
     )
-    pub_data = models.DateTimeField(
+    pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True
     )
 
     class Meta:
-        vebrose_name = 'Отзыв'
-        vebrose_name_plural = 'Отзывы'
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         ordering = ('-pub_date',)
 
     def __str__(self):
@@ -121,8 +123,8 @@ class Comment(models.Model):
     )
 
     class Meta:
-        vebrose_name = 'Комментарий'
-        vebrose_name_plural = 'Комментарии'
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text[:40]
