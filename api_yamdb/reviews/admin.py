@@ -69,7 +69,7 @@ class CommentAdmin(admin.ModelAdmin):
         else:
             return obj.text[:100] + '...'
 
-    
+
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     list_display = (

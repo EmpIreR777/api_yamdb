@@ -8,18 +8,15 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 User = get_user_model()
 
 
-class BaseCategoryGenreModel(models.Model):
-    """Базовая модель для категорий и жанров."""
-
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField('Слаг', max_length=50, unique=True)
-
-
 class Category(models.Model):
     """Модель категорий произведения."""
 
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField('Слаг', max_length=50, unique=True)
+    name = models.CharField(
+        'Название', max_length=256
+    )
+    slug = models.SlugField(
+        'Слаг', max_length=50, unique=True
+    )
 
     class Meta:
         verbose_name = 'Категория'
@@ -33,8 +30,12 @@ class Category(models.Model):
 class Genre(models.Model):
     """Модель жанров произведения."""
 
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField('Слаг', max_length=50, unique=True)
+    name = models.CharField(
+        'Название', max_length=256
+    )
+    slug = models.SlugField(
+        'Слаг', max_length=50, unique=True
+    )
 
     class Meta:
         verbose_name = 'Жанр'
@@ -84,7 +85,7 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Отзыв к произведению."""
-    
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -147,4 +148,3 @@ class Comment(models.Model):
             f'{self.author}: '
             f'{timezone.localtime(self.pub_data).strftime("%Y-%m-%d %H:%M")}'
         )
-
