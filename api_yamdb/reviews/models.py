@@ -1,5 +1,4 @@
-from datetime import datetime
-
+from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -32,7 +31,6 @@ class Genre(models.Model):
         return self.slug
 
 
-
 class Title(models.Model):
     """Модель произведения."""
 
@@ -41,7 +39,7 @@ class Title(models.Model):
         'Год выпуска',
         validators=[
             MaxValueValidator(
-                datetime.now().year,
+                timezone.now().year,
                 'Год выпуска не может быть больше текущего'
             )
         ]
