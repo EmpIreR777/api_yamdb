@@ -90,7 +90,9 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='творчество',
     )
-    text = models.CharField(max_length=200)
+    text = models.CharField(
+        max_length=200
+    )
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name='reviews',
@@ -101,6 +103,7 @@ class Review(models.Model):
         validators=(MinValueValidator(1), MaxValueValidator(10)),
         error_messages={'validators': 'от 1 до 10'},
     )
+    pub_date = models.DateTimeField(
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True
@@ -138,6 +141,8 @@ class Comment(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
 
