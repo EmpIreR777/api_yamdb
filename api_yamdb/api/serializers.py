@@ -9,23 +9,30 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ('name', 'slug')
 
 
 class TitleSerializer(serializers.ModelSerializer):
     genre = SlugRelatedField(slug_field='slug', read_only=True, many=True)
-    category = SlugRelatedField(slug_field='slug', read_only=True)
-    
+    category = CategorySerializer(read_only=True)
+
     class Meta:
         model = Title
         fields = (
             'id', 'name', 'year',
             'description', 'genre', 'category'
         )
+
+    # def validate(self, attrs):
+    #     if 'category' not in attrs:
+    #         raise serializers.ValidationError(
+    #             'Нужно указать категорию'
+    #         )
+    #     return attrs
