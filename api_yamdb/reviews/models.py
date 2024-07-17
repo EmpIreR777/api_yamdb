@@ -113,6 +113,10 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ('-pub_date',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='title_author'),]
 
     def __str__(self):
         return f'{self.author}: {self.text}'[:50]
@@ -135,7 +139,7 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='автор'
     )
-    pub_data = models.DateTimeField(
+    pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True
     )
@@ -149,5 +153,5 @@ class Comment(models.Model):
     def __str__(self):
         return (
             f'{self.author}: '
-            f'{timezone.localtime(self.pub_data).strftime("%Y-%m-%d %H:%M")}'
+            f'{timezone.localtime(self.pub_date).strftime("%Y-%m-%d %H:%M")}'
         )

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import filters, mixins, viewsets, status
 from rest_framework.viewsets import GenericViewSet
 
+from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     CategorySerializer, GenreSerializer, TitleSerializer,
     ReviewSerializer)
@@ -57,7 +58,13 @@ class TitleViewSet(CreateRetrieveListDeleteViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
 
+    def update(self, request, *args, **kwargs):
+        if not kwargs.get('partial'):
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
+        
     def get_title(self):
         return get_object_or_404(
             Title, id=self.kwargs.get('title_id'))
