@@ -20,6 +20,5 @@ class CreateRetrieveListDeleteViewSet(
     mixins.DestroyModelMixin,
     GenericViewSet
 ):
-    lookup_url_kwarg = 'slug'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
