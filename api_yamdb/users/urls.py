@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import UserRegistrationView, ConfirmRegistrationView, UserViewSet, UserSelfView
+from .views import UserRegistrationView, ConfirmRegistrationView
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet, basename='user')
+# router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
     path(
@@ -13,6 +13,6 @@ urlpatterns = [
     path(
         'token/', ConfirmRegistrationView.as_view(), name='token_obtain_pair'
     ),
-    path('', include(router.urls)),
-    path('users/me/', UserSelfView.as_view(), name='user-self'),
+    # path('', include(router.urls)),
+    # path('users/me/', UserSelfView.as_view(), name='user-self'),
 ]
