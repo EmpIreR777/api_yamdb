@@ -44,6 +44,7 @@ class Genre(models.Model):
     def __str__(self):
         return self.name
 
+
 class Title(models.Model):
     """Модель произведения."""
 
@@ -103,7 +104,6 @@ class Review(models.Model):
         validators=(MinValueValidator(1), MaxValueValidator(10)),
         error_messages={'validators': 'от 1 до 10'},
     )
-    pub_date = models.DateTimeField(
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True
