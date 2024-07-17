@@ -23,6 +23,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             )
         if len(value) > 150:
             raise serializers.ValidationError(
-                "Username должен быть не более 150 символов."
+                'Username должен быть не более 150 символов.'
             )
         return value

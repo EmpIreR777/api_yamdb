@@ -22,7 +22,7 @@ class UserRegistrationView(APIView):
         email = request.data.get('email')
         username = request.data.get('username')
 
-        # Проверка наличия обязательных полей
+        # Проверка наличия обязательных полей:
         missing_fields = []
         if not email:
             missing_fields.append('email')
@@ -36,23 +36,23 @@ class UserRegistrationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Проверяем, существует ли пользователь с указанным email или username
+        # Проверяем, существует ли пользователь с указанным email или username:
         user = User.objects.filter(email=email).first()
         if user:
             if User.objects.filter(username=username).first():
-                # Если пользователь существует, обновляем его данные
+                # Если пользователь существует, обновляем его данные:
                 user.username = username
                 user.confirmation_code = random.randint(1000, 9999)
                 user.is_active = False
                 user.save()
             else:
                 return Response(
-                    {"error": "Такой email или username уже существует."},
+                    {'error': 'Такой email или username уже существует.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
         else:
-            # Если пользователя не существует, создаем нового
+            # Если пользователя не существует, создаем нового:
             serializer = UserRegistrationSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
@@ -60,7 +60,9 @@ class UserRegistrationView(APIView):
                 user.is_active = False
                 user.save()
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
 
         send_mail(
             'Подтверждение регистрации',
