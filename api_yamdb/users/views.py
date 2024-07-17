@@ -1,12 +1,14 @@
 import random
+
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
-from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
-from django.conf import settings
 
 from .serializers import UserRegistrationSerializer
 
@@ -20,20 +22,35 @@ class UserRegistrationView(APIView):
         email = request.data.get('email')
         username = request.data.get('username')
 
-        if not email or not username:
+        # Проверка наличия обязательных полей
+        missing_fields = []
+        if not email:
+            missing_fields.append('email')
+        if not username:
+            missing_fields.append('username')
+
+        if missing_fields:
             return Response(
-                {"detail": "Поле email и username обязательны."},
+                {field: ['Это поле обязательно для заполнения.']
+                    for field in missing_fields},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         # Проверяем, существует ли пользователь с указанным email или username
         user = User.objects.filter(email=email).first()
         if user:
-            # Если пользователь существует, обновляем его данные
-            user.username = username
-            user.confirmation_code = random.randint(1000, 9999)
-            user.is_active = False
-            user.save()
+            if User.objects.filter(username=username).first():
+                # Если пользователь существует, обновляем его данные
+                user.username = username
+                user.confirmation_code = random.randint(1000, 9999)
+                user.is_active = False
+                user.save()
+            else:
+                return Response(
+                    {"error": "Такой email или username уже существует."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         else:
             # Если пользователя не существует, создаем нового
             serializer = UserRegistrationSerializer(data=request.data)
@@ -66,8 +83,12 @@ class ConfirmRegistrationView(APIView):
         confirmation_code = request.data.get('confirmation_code')
 
         try:
-            user = User.objects.get(
-                username=username, confirmation_code=confirmation_code)
+            user = User.objects.get(username=username)
+            if user.confirmation_code != confirmation_code:
+                return Response(
+                    {'error': 'Неправильный код подтверждения'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             user.is_active = True
             user.confirmation_code = ''
             user.save()
@@ -75,9 +96,12 @@ class ConfirmRegistrationView(APIView):
             # Создаем токен доступа
             access_token = RefreshToken.for_user(user)
 
-            return Response({'token': str(access_token)}, status=status.HTTP_200_OK)
+            return Response(
+                {'token': str(access_token)},
+                status=status.HTTP_200_OK
+            )
         except User.DoesNotExist:
             return Response(
-                {'error': 'Неправильное имя пользователя или код подтверждения'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Пользователь не найден'},
+                status=status.HTTP_404_NOT_FOUND
             )

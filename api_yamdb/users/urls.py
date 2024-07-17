@@ -11,8 +11,8 @@ urlpatterns = [
         'signup/', UserRegistrationView.as_view(), name='signup'
     ),
     path(
-        'token/', ConfirmRegistrationView.as_view(), name='token_obtain_pair'
+        'token/', ConfirmRegistrationView.as_view(), name='confirm_registration'
     ),
-    # path('', include(router.urls)),
+    path('', include(router.urls)),
     # path('users/me/', UserSelfView.as_view(), name='user-self'),
 ]
