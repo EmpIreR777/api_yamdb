@@ -119,13 +119,13 @@ AUTH_USER_MODEL = 'users.CustomUser'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # # Настройки для реального SMTP-сервера
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.your-email-provider.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@example.com'
-# EMAIL_HOST_PASSWORD = 'your-email-password'
-# DEFAULT_FROM_EMAIL = 'your-email@example.com'
+# EMAIL_BACKEND =
+# EMAIL_HOST =
+# EMAIL_PORT =
+# EMAIL_USE_TLS =
+# EMAIL_HOST_USER =
+# EMAIL_HOST_PASSWORD =
+# DEFAULT_FROM_EMAIL =
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
