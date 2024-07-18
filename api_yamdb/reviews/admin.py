@@ -57,7 +57,7 @@ class CommentAdmin(admin.ModelAdmin):
         'review',
         'short_text',
         'author',
-        'pub_data',
+        'pub_date',
     )
     search_fields = ('review',)
     list_filter = ('review',)
