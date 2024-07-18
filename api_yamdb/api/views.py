@@ -1,15 +1,14 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .mixins import CreateListDeleteViewSet, CreateRetrieveListDeleteViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (
     CategorySerializer, GenreSerializer, TitleSerializer,
-    ReviewSerializer)
-from reviews.models import Category, Genre, Title
+    ReviewSerializer, CommentSerializer)
+from reviews.models import Category, Genre, Title, Review
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
@@ -56,7 +55,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if not kwargs.get('partial'):
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().update(request, *args, **kwargs)
-        
+
     def get_title(self):
         return get_object_or_404(
             Title, id=self.kwargs.get('title_id'))
@@ -68,3 +67,26 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
+
+    def update(self, request, *args, **kwargs):
+        if not kwargs.get('partial'):
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
+
+    def get_review(self):
+        return get_object_or_404(
+            Review, id=self.kwargs.get('review_id'))
+
+    def get_queryset(self):
+        review = self.get_review()
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review = self.get_review()
+        serializer.save(author=self.request.user, review=review)
