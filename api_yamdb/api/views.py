@@ -34,7 +34,7 @@ class GenreViewSet(CreateListDeleteViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TitleViewSet(CreateRetrieveListDeleteViewSet):
+class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
     serializer_class = TitleSerializer
@@ -46,6 +46,23 @@ class TitleViewSet(CreateRetrieveListDeleteViewSet):
         'year',
     )
 
+    def perform_create(self, serializer):
+        category = get_object_or_404(
+            Category,
+            slug=self.request.data['category'],
+        )
+        if isinstance(self.request.data['genre'], list):
+            genres = [
+                get_object_or_404(
+                    Genre,
+                    slug=genre,
+                ) for genre in self.request.data['genre']
+            ]
+        else:
+            genres = [get_object_or_404(
+                Genre, slug=self.request.data['genre'],)]
+        serializer.save(category=category, genre=genres,)
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
 
@@ -56,7 +73,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if not kwargs.get('partial'):
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().update(request, *args, **kwargs)
-        
+
     def get_title(self):
         return get_object_or_404(
             Title, id=self.kwargs.get('title_id'))

@@ -23,8 +23,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    genre = SlugRelatedField(slug_field='slug', read_only=True, many=True)
-    category = SlugRelatedField(slug_field='slug', read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
 
     def get_rating(self, obj):
         return obj.get_rating()
