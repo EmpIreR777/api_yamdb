@@ -45,6 +45,11 @@ class TitleViewSet(viewsets.ModelViewSet):
         'year',
     )
 
+    def update(self, request, *args, **kwargs):
+        if not kwargs.get('partial'):
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         category = get_object_or_404(
             Category,
