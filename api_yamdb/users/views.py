@@ -87,6 +87,13 @@ class ConfirmRegistrationView(APIView):
         username = request.data.get('username')
         confirmation_code = request.data.get('confirmation_code')
 
+        # Проверяем наличие обязательных полей.
+        if not username or not confirmation_code:
+            return Response(
+                {'error': 'Отсутствует обязательное поле или оно некорректно'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             user = User.objects.get(username=username)
             if user.confirmation_code != confirmation_code:
@@ -98,7 +105,6 @@ class ConfirmRegistrationView(APIView):
             user.confirmation_code = ''
             user.save()
 
-            # Создаем токен доступа
             access_token = AccessToken.for_user(user)
 
             return Response(
@@ -113,6 +119,7 @@ class ConfirmRegistrationView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated, IsAdmin]
     queryset = User.objects.all()
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
@@ -122,19 +129,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers.UserCreateSerializer
         return serializers.UserSerializer
-
-    def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = [IsAuthenticated, IsAdmin]
-        elif self.action in ['retrieve', 'update', 'partial_update']:
-            self.permission_classes = [IsAuthenticated, IsAdmin]
-        elif self.action == 'destroy':
-            self.permission_classes = [IsAuthenticated, IsAdmin]
-        elif self.action == 'list':
-            self.permission_classes = [IsAuthenticated, IsAdmin]
-        else:
-            self.permission_classes = [IsAuthenticated]
-        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -28,7 +28,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
             )
         if not re.match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError(
-                'Имя пользователя должно соответствовать шаблону'
+                'Имя пользователя должно соответствовать шаблону.'
             )
         return value
 
