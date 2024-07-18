@@ -1,30 +1,20 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import filters, mixins, viewsets, status
-from rest_framework.viewsets import GenericViewSet
 
-from .permissions import IsAuthorOrReadOnly
+from .mixins import CreateListDeleteViewSet, CreateRetrieveListDeleteViewSet
+from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (
     CategorySerializer, GenreSerializer, TitleSerializer,
     ReviewSerializer)
-from .mixins import CreateListDeleteViewSet, CreateRetrieveListDeleteViewSet
 from reviews.models import Category, Genre, Title
-
-
-class GetPostViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    GenericViewSet,
-):
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
     queryset = Category.objects.all()
+    permission_classes = (IsAdminOrReadOnly,)
     serializer_class = CategorySerializer
 
     def destroy(self, request, *args, **kwargs):
@@ -35,6 +25,7 @@ class CategoryViewSet(CreateListDeleteViewSet):
 
 class GenreViewSet(CreateListDeleteViewSet):
     queryset = Genre.objects.all()
+    permission_classes = (IsAdminOrReadOnly,)
     serializer_class = GenreSerializer
 
     def destroy(self, request, *args, **kwargs):
@@ -45,6 +36,7 @@ class GenreViewSet(CreateListDeleteViewSet):
 
 class TitleViewSet(CreateRetrieveListDeleteViewSet):
     queryset = Title.objects.all()
+    permission_classes = (IsAdminOrReadOnly,)
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = (

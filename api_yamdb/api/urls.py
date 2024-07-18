@@ -19,7 +19,6 @@ v1_router.register(
 
 
 urlpatterns = [
-    path('v1/', include(v1_router.urls)),
     path(
         'v1/auth/signup/', views.UserRegistrationView.as_view(),
         name='signup'
@@ -31,4 +30,5 @@ urlpatterns = [
     path(
         'v1/users/me/', views.UserSelfView.as_view(),
         name='user-self'),
+    path('v1/', include(v1_router.urls)),
 ]
