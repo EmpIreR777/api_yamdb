@@ -1,24 +1,21 @@
-# from django.urls import path, include
-# # from rest_framework.routers import DefaultRouter
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
-# from . import views
+from . import views
 
-# # router = DefaultRouter()
-# # router.register(r'users', views.UserViewSet, basename='users')
+v1_router = DefaultRouter()
+v1_router.register('', views.UserViewSet, basename='user')
 
-# urlpatterns = [
-#     # path(
-#     #     'signup/', views.UserRegistrationView.as_view(),
-#     #     name='signup'
-#     # ),
-#     # path(
-#     #     'token/', views.ConfirmRegistrationView.as_view(),
-#     #     name='confirm_registration'
-#     # ),
-#     # path('', include(router.urls)),
-#     path('me/', views.UserSelfView.as_view(),
-#          name='user-self'),
-#     # path('', views.UserViewSet.as_view(),
-#     #      name='users'),
-
-# ]
+urlpatterns = [
+    path(
+        'signup/', views.UserRegistrationView.as_view(),
+        name='signup'
+    ),
+    path(
+        'token/', views.ConfirmRegistrationView.as_view(),
+        name='confirm_registration'
+    ),
+    path('me/', views.UserSelfView.as_view(),
+         name='user-self'),
+    path('', include(v1_router.urls)),
+]
