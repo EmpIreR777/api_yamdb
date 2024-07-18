@@ -3,32 +3,10 @@ import re
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-
 User = get_user_model()
 
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('email', 'username')
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Использовать "me" в качестве имени пользователя запрещено.'
-            )
-        if not re.match(r'^[\w.@+-]+\Z', value):
-            raise serializers.ValidationError(
-                'Username должен содержать буквы, цифры и символы @/./+/-/_'
-            )
-        if len(value) > 150:
-            raise serializers.ValidationError(
-                'Username должен быть не более 150 символов.'
-            )
-        return value
-
-
-class UserSerializer(serializers.ModelSerializer):
+class BaseUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name',
@@ -39,51 +17,70 @@ class UserSerializer(serializers.ModelSerializer):
             'bio': {'default': ''},
         }
 
-
-class UserCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'first_name',
-                  'last_name', 'bio', 'role', 'password']
-        extra_kwargs = {            
-            'username': {'required': True},
-            'email': {'required': True},
-            'password': {'required': False, 'write_only': True},
-            'bio': {'default': ''},
-        }
-
     def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Использовать "me" в качестве имени пользователя запрещено.'
+            )
         if len(value) > 150:
             raise serializers.ValidationError(
-                "Username must be 150 characters or fewer."
+                'Имя пользователя должно содержать не более 150 символов.'
             )
         if not re.match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError(
-                "Username must match the pattern: ^[\w.@+-]+\Z"
+                'Имя пользователя должно соответствовать шаблону'
             )
         return value
 
     def validate_email(self, value):
         if len(value) > 254:
             raise serializers.ValidationError(
-                "Email must be 254 characters or fewer."
+                'Электронная почта должна содержать не более 254 символов.'
             )
         return value
 
     def validate_first_name(self, value):
         if len(value) > 150:
             raise serializers.ValidationError(
-                "First name must be 150 characters or fewer."
+                'Имя должно содержать не более 150 символов.'
             )
         return value
 
     def validate_last_name(self, value):
         if len(value) > 150:
             raise serializers.ValidationError(
-                "Last name must be 150 characters or fewer."
+                'Фамилия должна содержать не более 150 символов.'
             )
         return value
+
+
+class UserRegistrationSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        fields = ['email', 'username']
+
+
+class UserSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        pass
+
+
+class UserCreateSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        fields = BaseUserSerializer.Meta.fields + ['password']
+        extra_kwargs = {
+            **BaseUserSerializer.Meta.extra_kwargs,
+            'password': {'required': False, 'write_only': True},
+        }
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class UserUpdateSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        fields = ['username', 'email', 'first_name', 'last_name', 'bio']
+        extra_kwargs = {
+            'username': {'required': True},
+            'email': {'required': True},
+        }

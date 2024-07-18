@@ -11,7 +11,9 @@ v1_router.register('titles', TitleViewSet, basename='titles')
 v1_router.register('users', views.UserViewSet, basename='user')
 
 urlpatterns = [
-    path('v1/', include(v1_router.urls)),
+    path(
+        'v1/users/me/', views.UserSelfView.as_view(),
+        name='user-self'),
     path(
         'v1/auth/signup/', views.UserRegistrationView.as_view(),
         name='signup'
@@ -20,7 +22,5 @@ urlpatterns = [
         'v1/auth/token/', views.ConfirmRegistrationView.as_view(),
         name='confirm_registration'
     ),
-    path(
-        'v1/users/me/', views.UserSelfView.as_view(),
-        name='user-self'),
+    path('v1/', include(v1_router.urls)),
 ]

@@ -4,13 +4,14 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
-from rest_framework import status, viewsets, permissions
+from rest_framework import status, viewsets, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from .serializers import UserRegistrationSerializer, UserSerializer, UserCreateSerializer
+from .permissions import IsAdmin, IsAuthor
+from . import serializers
 
 User = get_user_model()
 
@@ -53,7 +54,9 @@ class UserRegistrationView(APIView):
 
         else:
             # Если пользователя не существует, создаем нового:
-            serializer = UserRegistrationSerializer(data=request.data)
+            serializer = serializers.UserRegistrationSerializer(
+                data=request.data
+            )
             if serializer.is_valid():
                 user = serializer.save()
                 user.confirmation_code = random.randint(1000, 9999)
@@ -111,22 +114,40 @@ class ConfirmRegistrationView(APIView):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    # permission_classes = [permissions.IsAdminUser]
     lookup_field = 'username'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ['username', 'email', 'first_name', 'last_name']
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return UserCreateSerializer
-        return UserSerializer
+            return serializers.UserCreateSerializer
+        return serializers.UserSerializer
+
+    def get_permissions(self):
+        if self.action == 'create':
+            self.permission_classes = [IsAuthenticated, IsAdmin]
+        elif self.action in ['retrieve', 'update', 'partial_update']:
+            self.permission_classes = [IsAuthenticated, IsAdmin]
+        elif self.action == 'destroy':
+            self.permission_classes = [IsAuthenticated, IsAdmin]
+        elif self.action == 'list':
+            self.permission_classes = [IsAuthenticated, IsAdmin]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(
@@ -138,18 +159,23 @@ class UserViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class UserSelfView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthor]
 
-    # def get(self, request):
-    #     serializer = UserSerializer(request.user)
-    #     return Response(serializer.data)
+    def get(self, request):
+        serializer = serializers.UserSerializer(request.user)
+        return Response(serializer.data)
 
-    # def patch(self, request):
-    #     serializer = UserSerializer(
-    #         request.user, data=request.data, partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def patch(self, request):
+        serializer = serializers.UserUpdateSerializer(
+            request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
