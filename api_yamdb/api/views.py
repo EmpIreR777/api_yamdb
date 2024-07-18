@@ -9,7 +9,7 @@ from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (
     CategorySerializer, GenreSerializer, TitleSerializer,
     ReviewSerializer)
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title, Review
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
@@ -35,6 +35,7 @@ class GenreViewSet(CreateListDeleteViewSet):
 
 
 class TitleViewSet(CreateRetrieveListDeleteViewSet):
+    # queryset = Title.objects.all()
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
     serializer_class = TitleSerializer
