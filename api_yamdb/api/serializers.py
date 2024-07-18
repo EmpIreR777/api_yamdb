@@ -26,13 +26,24 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = SlugRelatedField(slug_field='slug', read_only=True, many=True)
     category = SlugRelatedField(slug_field='slug', read_only=True)
 
+    def get_rating(self, obj):
+        return obj.get_rating()
+
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = (
-            'id', 'name', 'year',
+            'id', 'name', 'year', 'rating',
             'description', 'genre', 'category'
         )
+
+    # def validate(self, attrs):
+    #     if 'category' not in attrs:
+    #         raise serializers.ValidationError(
+    #             'Нужно указать категорию'
+    #         )
+    #     return attrs
 
 
 class ReviewSerializer(serializers.ModelSerializer):

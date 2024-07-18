@@ -1,8 +1,8 @@
-from django.utils import timezone
 from django.db import models
+from django.db.models import Avg
 from django.contrib.auth import get_user_model
-
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -59,7 +59,7 @@ class Title(models.Model):
         ],
     )
     description = models.TextField(
-        'Описание', null=True, blank=True
+        'Описание', null=True, blank=True, default='',
     )
     genre = models.ManyToManyField(
         Genre, related_name='titles',
@@ -80,6 +80,9 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_rating(self):
+        return self.reviews.aggregate(Avg('score'))['score__avg']
 
 
 class Review(models.Model):
