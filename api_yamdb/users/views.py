@@ -17,6 +17,15 @@ User = get_user_model()
 
 
 class UserRegistrationView(APIView):
+    """
+    Представление для регистрации пользователя.
+
+    Доступно для всех пользователей (без аутентификации).
+    Принимает POST-запрос с полями email и username
+    для регистрации нового пользователя.
+    Отправляет код подтверждения на указанный email.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -43,7 +52,7 @@ class UserRegistrationView(APIView):
             if User.objects.filter(username=username).first():
                 # Если пользователь существует, обновляем его данные:
                 user.username = username
-                user.confirmation_code = random.randint(1000, 9999)
+                user.confirmation_code = random.randint(100000, 999999)
                 user.is_active = False
                 user.save()
             else:
@@ -81,6 +90,16 @@ class UserRegistrationView(APIView):
 
 
 class ConfirmRegistrationView(APIView):
+    """
+    Представление для подтверждения регистрации пользователя.
+
+    Доступно для всех пользователей (без аутентификации).
+    Принимает POST-запрос с полями username и confirmation_code
+    для подтверждения регистрации.
+    При успешном подтверждении активирует учетную запись пользователя
+    и возвращает токен доступа.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -119,16 +138,21 @@ class ConfirmRegistrationView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    Вьюсет для управления пользователями.
+
+    Доступно только для аутентифицированных пользователей
+    с правами администратора.
+    Поддерживает операции создания, частичного обновления,
+    удаления и поиска пользователей.
+    """
+
+    serializer_class = serializers.UserSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     queryset = User.objects.all()
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ['username', 'email', 'first_name', 'last_name']
-
-    def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return serializers.UserCreateSerializer
-        return serializers.UserSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -140,18 +164,15 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
     def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        partial = kwargs.pop('partial', False)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(
-            instance, data=request.data, partial=partial)
+            instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def perform_create(self, serializer):
-        serializer.save()
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -160,6 +181,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class UserSelfView(APIView):
+    """
+    Представление для получения и частичного обновления данных
+    текущего пользователя.
+
+    Доступно только для аутентифицированных пользователей.
+    """
+
     permission_classes = [IsAuthenticated, IsAuthor]
 
     def get(self, request):
