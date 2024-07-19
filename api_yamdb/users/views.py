@@ -4,11 +4,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
-from rest_framework import status, viewsets, filters
+from rest_framework import filters, status, viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .permissions import IsAdmin, IsAuthor
 from . import serializers
@@ -29,15 +29,10 @@ class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get('email')
-        username = request.data.get('username')
-
-        # Проверка наличия обязательных полей:
-        missing_fields = []
-        if not email:
-            missing_fields.append('email')
-        if not username:
-            missing_fields.append('username')
+        required_fields = ['email', 'username']
+        missing_fields = [
+            field for field in required_fields if not request.data.get(field)
+        ]
 
         if missing_fields:
             return Response(
@@ -45,6 +40,9 @@ class UserRegistrationView(APIView):
                     for field in missing_fields},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        email = request.data.get('email')
+        username = request.data.get('username')
 
         # Проверяем, существует ли пользователь с указанным email или username:
         user = User.objects.filter(email=email).first()
@@ -68,7 +66,7 @@ class UserRegistrationView(APIView):
             )
             if serializer.is_valid():
                 user = serializer.save()
-                user.confirmation_code = random.randint(1000, 9999)
+                user.confirmation_code = random.randint(100000, 999999)
                 user.is_active = False
                 user.save()
             else:
@@ -106,7 +104,7 @@ class ConfirmRegistrationView(APIView):
         username = request.data.get('username')
         confirmation_code = request.data.get('confirmation_code')
 
-        # Проверяем наличие обязательных полей.
+        # Проверяем наличие обязательных полей:
         if not username or not confirmation_code:
             return Response(
                 {'error': 'Отсутствует обязательное поле или оно некорректно'},
