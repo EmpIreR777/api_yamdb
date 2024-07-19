@@ -45,6 +45,11 @@ class TitleViewSet(viewsets.ModelViewSet):
         'year',
     )
 
+    def update(self, request, *args, **kwargs):
+        if not kwargs.get('partial'):
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         category = get_object_or_404(
             Category,
@@ -61,6 +66,14 @@ class TitleViewSet(viewsets.ModelViewSet):
             genres = [get_object_or_404(
                 Genre, slug=self.request.data['genre'],)]
         serializer.save(category=category, genre=genres,)
+
+    def perform_update(self, serializer):
+        if 'category' in self.request.data:
+            serializer.validated_data['category'] = get_object_or_404(
+                Category,
+                slug=self.request.data['category'],
+            )
+        serializer.save()
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
