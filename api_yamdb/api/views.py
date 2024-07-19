@@ -67,6 +67,14 @@ class TitleViewSet(viewsets.ModelViewSet):
                 Genre, slug=self.request.data['genre'],)]
         serializer.save(category=category, genre=genres,)
 
+    def perform_update(self, serializer):
+        if 'category' in self.request.data:
+            serializer.validated_data['category'] = get_object_or_404(
+                Category,
+                slug=self.request.data['category'],
+            )
+        serializer.save()
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
 
