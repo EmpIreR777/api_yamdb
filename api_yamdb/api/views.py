@@ -9,6 +9,7 @@ from .serializers import (
     CategorySerializer, GenreSerializer, TitleSerializer,
     ReviewSerializer, CommentSerializer)
 from reviews.models import Category, Genre, Title, Review
+from .filters import TitleFilter
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
@@ -38,12 +39,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = (
-        'category__slug',
-        'genre__slug',
-        'name',
-        'year',
-    )
+    filterset_class = TitleFilter
 
     def update(self, request, *args, **kwargs):
         if not kwargs.get('partial'):
@@ -55,16 +51,12 @@ class TitleViewSet(viewsets.ModelViewSet):
             Category,
             slug=self.request.data['category'],
         )
-        if isinstance(self.request.data['genre'], list):
-            genres = [
-                get_object_or_404(
-                    Genre,
-                    slug=genre,
-                ) for genre in self.request.data['genre']
-            ]
-        else:
-            genres = [get_object_or_404(
-                Genre, slug=self.request.data['genre'],)]
+        genres = [
+            get_object_or_404(
+                Genre,
+                slug=genre,
+            ) for genre in self.request.data.getlist('genre')
+        ]
         serializer.save(category=category, genre=genres,)
 
     def perform_update(self, serializer):
