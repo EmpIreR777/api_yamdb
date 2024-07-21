@@ -4,7 +4,6 @@ from django.urls import include, path
 from .views import (
     CategoryViewSet, GenreViewSet, TitleViewSet, ReviewViewSet,
     CommentViewSet)
-from users import views
 
 
 v1_router = routers.DefaultRouter()
@@ -22,6 +21,6 @@ v1_router.register(
     basename='comments'
 )
 
-urlpatterns = [    
+urlpatterns = [
     path('v1/', include(v1_router.urls)),
 ]

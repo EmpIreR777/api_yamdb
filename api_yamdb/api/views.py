@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
-from .mixins import CreateListDeleteViewSet, CreateRetrieveListDeleteViewSet
+from .mixins import CreateListDeleteViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (
     CategorySerializer, GenreSerializer, TitleSerializer,

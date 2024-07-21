@@ -38,13 +38,6 @@ class TitleSerializer(serializers.ModelSerializer):
             'description', 'genre', 'category'
         )
 
-    # def validate(self, attrs):
-    #     if 'category' not in attrs:
-    #         raise serializers.ValidationError(
-    #             'Нужно указать категорию'
-    #         )
-    #     return attrs
-
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
