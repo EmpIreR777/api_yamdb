@@ -43,5 +43,39 @@ python3 manage.py runserver
 ```
 
 
-## Примеры запросов.
+## Примеры запросов:
+Пример POST-запроса: регистрация нового пользователя.
+```
+{
+  "email": "user@no-admin.ru",
+  "username": "regular-user"
+}
+```
+Пример ответа:
+```
+{
+    "email": "user@no-admin.ru",
+    "username": "regular-user"
+}
+```
+При этом на электронную почту приходит сообщение с текстом: "Ваш код подтверждения: 350404"
+
+
+Пример POST-запроса: получение JWT-токена.
+```
+{
+  "username": "regular-user",
+  "confirmation_code": "802705"
+}
+```
+Пример ответа:
+```
+{
+    "token": "eyJ0eXAiOiJK...
+         ...
+         ...i4Cwt57WzjGQ8"
+}
+
+
+
 
