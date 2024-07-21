@@ -12,19 +12,31 @@
 
 1. Клонировать репозиторий и перейти в него в командной строке:
 ```sh
-git clone https://
+git clone https://github.com/EmpIreR777/api_yamdb/
 ```
 ```sh
 cd api_yamdb
 ```
 2. В корневой директории проекта создайте виртуальное окружение:
+
+- Для Windows:
 ```sh
 python -m venv venv
 ```
+- Для Linux/MacOS:
+```sh
+python3 -m venv venv
+```
 3. Активируйте виртуальное окружение, находясь в корневой директории:
+- Для Windows:
 ```sh
 source venv/Scripts/activate
 ```
+- Для Linux/MacOS:
+```sh
+source venv/bin/source
+```
+
 4. Обновите пакетный менеджер, находясь в корневой директории:
 ```sh
 python -m pip install --upgrade pip
@@ -41,10 +53,15 @@ python manage.py migrate
 ```sh
 python3 manage.py runserver
 ```
+8. Открыть документацию api:
+
+    URL: http://127.0.0.1:8000/redoc/
+
 
 
 ## Примеры запросов:
-Пример POST-запроса: регистрация нового пользователя.
+### Пример POST-запроса: регистрация нового пользователя.
+URL: http://127.0.0.1:8000/api/v1/auth/signup/
 ```
 {
   "email": "user@no-admin.ru",
@@ -61,7 +78,8 @@ python3 manage.py runserver
 При этом на электронную почту приходит сообщение с текстом: "Ваш код подтверждения: 350404"
 
 
-Пример POST-запроса: получение JWT-токена.
+### Пример POST-запроса: получение JWT-токена.
+URL: http://127.0.0.1:8000/api/v1/auth/token/
 ```
 {
   "username": "regular-user",
@@ -75,7 +93,42 @@ python3 manage.py runserver
          ...
          ...i4Cwt57WzjGQ8"
 }
+```
 
 
+### Пример ответа при GET-запросе: произведение.
+URL: http://127.0.0.1:8000/api/v1/titles/37/
+```
+{
+    "id": 37,
+    "name": "Братва и кольцо",
+    "year": 2001,
+    "rating": 10,
+    "description": "",
+    "genre": [
+        {
+            "name": "Драма",
+            "slug": "drama"
+        },
+        {
+            "name": "Фантастика",
+            "slug": "sci-fi"
+        },
+        {
+            "name": "Шансон",
+            "slug": "chanson"
+        }
+    ],
+    "category": {
+        "name": "Фильм",
+        "slug": "movie"
+    }
+}
+```
 
+
+## Над проектом работали:
+[Сафронов Кирилл](https://github.com/EmpIreR777) |
+[Самофалов Федор](https://github.com/FedorSamofalov) |
+[Кунин Александр](https://github.com/K-u-n-i-n)
 
