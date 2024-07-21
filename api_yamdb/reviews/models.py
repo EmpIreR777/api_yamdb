@@ -119,7 +119,8 @@ class Review(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'],
-                name='title_author'),]
+                name='title_author'),
+        ]
 
     def __str__(self):
         return f'{self.author}: {self.text}'[:50]
