@@ -1,8 +1,6 @@
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
-
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Genre, Title, Review, Comment
 
@@ -37,13 +35,6 @@ class TitleSerializer(serializers.ModelSerializer):
             'id', 'name', 'year', 'rating',
             'description', 'genre', 'category'
         )
-
-    # def validate(self, attrs):
-    #     if 'category' not in attrs:
-    #         raise serializers.ValidationError(
-    #             'Нужно указать категорию'
-    #         )
-    #     return attrs
 
 
 class ReviewSerializer(serializers.ModelSerializer):

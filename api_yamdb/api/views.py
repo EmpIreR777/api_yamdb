@@ -3,16 +3,18 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
-from .mixins import CreateListDeleteViewSet, CreateRetrieveListDeleteViewSet
+from .mixins import CreateListDeleteViewSet
+from .filters import TitleFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (
-    CategorySerializer, GenreSerializer, TitleSerializer,
-    ReviewSerializer, CommentSerializer)
-from reviews.models import Category, Genre, Title, Review
-from .filters import TitleFilter
+    CategorySerializer, CommentSerializer, GenreSerializer,
+    ReviewSerializer, TitleSerializer)
+from reviews.models import Category, Genre, Review, Title
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
+    """Получение категории, добавление и удаление."""
+
     queryset = Category.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
     serializer_class = CategorySerializer
@@ -24,6 +26,8 @@ class CategoryViewSet(CreateListDeleteViewSet):
 
 
 class GenreViewSet(CreateListDeleteViewSet):
+    """Получение жанра, добавление и удаление."""
+
     queryset = Genre.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
     serializer_class = GenreSerializer
@@ -35,6 +39,8 @@ class GenreViewSet(CreateListDeleteViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Получение произведения, частичное обновление, добавление и удаление."""
+
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
     serializer_class = TitleSerializer
@@ -69,6 +75,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Получение обзора, частичное обновление, добавление и удаление."""
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorOrReadOnly,)
@@ -92,6 +99,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Получение комментариев, частичное обновление, добавление и удаление."""
 
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
