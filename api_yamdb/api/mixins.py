@@ -11,14 +11,3 @@ class CreateListDeleteViewSet(
     lookup_url_kwarg = 'slug'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-
-
-class CreateRetrieveListDeleteViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    GenericViewSet
-):
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)

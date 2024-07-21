@@ -16,7 +16,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if not re.match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError(
-                'Имя пользователя должно соответствовать шаблону.'
+                'Требуется только буквы, цифры и @/./+/-/_.'
             )
         return value
 

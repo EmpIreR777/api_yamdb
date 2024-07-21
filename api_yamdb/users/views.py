@@ -44,11 +44,9 @@ class UserRegistrationView(APIView):
         email = request.data.get('email')
         username = request.data.get('username')
 
-        # Проверяем, существует ли пользователь с указанным email или username:
         user = User.objects.filter(email=email).first()
         if user:
             if User.objects.filter(username=username).first():
-                # Если пользователь существует, обновляем его данные:
                 user.username = username
                 user.confirmation_code = random.randint(100000, 999999)
                 user.is_active = False
@@ -60,7 +58,6 @@ class UserRegistrationView(APIView):
                 )
 
         else:
-            # Если пользователя не существует, создаем нового:
             serializer = serializers.UserRegistrationSerializer(
                 data=request.data
             )

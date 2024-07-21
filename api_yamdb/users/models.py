@@ -1,13 +1,7 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
 from django.db import models
 
-
-def validate_not_me(value):
-    if value == 'me':
-        raise ValidationError(
-            'Использовать "me" в качестве имени пользователя запрещено.'
-        )
+from .validators import validate_not_me
 
 
 class CustomUser(AbstractUser):

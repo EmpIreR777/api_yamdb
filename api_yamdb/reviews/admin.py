@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Title, Category, Comment, Review, Genre
+from .models import Category, Comment, Genre, Review, Title
 
 
 admin.site.site_header = "Сайт отзывов, на разные произведения"
