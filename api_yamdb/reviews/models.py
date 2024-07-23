@@ -83,8 +83,7 @@ class Title(models.Model):
 
 
 class TitleGenre(models.Model):
-    title = models.ForeignKey(
-        Title, verbose_name='genre', on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
 
     def __str__(self):
