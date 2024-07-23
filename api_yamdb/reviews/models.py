@@ -2,7 +2,8 @@ from django.db import models
 from django.db.models import Avg
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.utils import timezone
+
+from .validators import validate_year_not_future
 
 User = get_user_model()
 
@@ -49,13 +50,10 @@ class Title(models.Model):
     """Модель произведения."""
 
     name = models.CharField('Название', max_length=256)
-    year = models.IntegerField(
+    year = models.SmallIntegerField(
         'Год выпуска',
         validators=[
-            MaxValueValidator(
-                timezone.now().year,
-                'Год выпуска не может быть больше текущего'
-            )
+            validate_year_not_future
         ],
     )
     description = models.TextField(
@@ -63,7 +61,8 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(
         Genre, related_name='titles',
-        verbose_name='Жанр'
+        verbose_name='Жанр',
+        through='TitleGenre'
     )
     category = models.ForeignKey(
         Category,
@@ -83,6 +82,14 @@ class Title(models.Model):
 
     def get_rating(self):
         return self.reviews.aggregate(Avg('score'))['score__avg']
+
+
+class TitleGenre(models.Model):
+    title = models.ForeignKey(Title, verbose_name='genre', on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.title} {self.genre}'
 
 
 class Review(models.Model):
@@ -148,8 +155,6 @@ class Comment(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Комментарий'
-        verbose_name_plural = 'Комментарии'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
 

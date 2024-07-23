@@ -9,5 +9,6 @@ class CreateListDeleteViewSet(
     GenericViewSet
 ):
     lookup_url_kwarg = 'slug'
+    lookup_field = 'slug'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
