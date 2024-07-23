@@ -34,7 +34,6 @@ class CustomUser(AbstractUser):
     bio = models.TextField(
         'Биография', blank=True, null=True
     )
-    confirmation_code = models.CharField(max_length=10, blank=True, null=True)
 
     class Meta:
         ordering = ['username']

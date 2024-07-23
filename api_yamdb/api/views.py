@@ -1,7 +1,6 @@
-import random
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,8 +13,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from .mixins import CreateListDeleteViewSet
 from .filters import TitleFilter
 from .permissions import (
-    IsAdminOrReadOnly, IsAuthorOrReadOnly,
-    IsAdmin, IsAuthor
+    IsAdminOrReadOnly, IsAuthorOrReadOnly, IsAdmin
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
@@ -169,9 +167,7 @@ class UserRegistrationView(APIView):
         if user:
             if User.objects.filter(username=username).first():
                 user.username = username
-                user.confirmation_code = random.randint(100000, 999999)
-                user.is_active = False
-                user.save()
+                confirmation_code = default_token_generator.make_token(user)
             else:
                 return Response(
                     {'error': 'Такой email или username уже существует.'},
@@ -184,9 +180,7 @@ class UserRegistrationView(APIView):
             )
             if serializer.is_valid():
                 user = serializer.save()
-                user.confirmation_code = random.randint(100000, 999999)
-                user.is_active = False
-                user.save()
+                confirmation_code = default_token_generator.make_token(user)
             else:
                 return Response(
                     serializer.errors, status=status.HTTP_400_BAD_REQUEST
@@ -194,7 +188,7 @@ class UserRegistrationView(APIView):
 
         send_mail(
             'Подтверждение регистрации',
-            f'Ваш код подтверждения: {user.confirmation_code}',
+            f'Ваш код подтверждения: {confirmation_code}',
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
             fail_silently=False,
@@ -222,7 +216,6 @@ class ConfirmRegistrationView(APIView):
         username = request.data.get('username')
         confirmation_code = request.data.get('confirmation_code')
 
-        # Проверяем наличие обязательных полей:
         if not username or not confirmation_code:
             return Response(
                 {'error': 'Отсутствует обязательное поле или оно некорректно'},
@@ -231,14 +224,11 @@ class ConfirmRegistrationView(APIView):
 
         try:
             user = User.objects.get(username=username)
-            if user.confirmation_code != confirmation_code:
+            if not default_token_generator.check_token(user, confirmation_code):
                 return Response(
                     {'error': 'Неправильный код подтверждения'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            user.is_active = True
-            user.confirmation_code = ''
-            user.save()
 
             access_token = AccessToken.for_user(user)
 
