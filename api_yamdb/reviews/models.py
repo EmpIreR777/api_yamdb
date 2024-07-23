@@ -2,9 +2,9 @@ from django.db import models
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 
 from .validators import validate_year_not_future
-
 from api.validators import validate_username
 
 
@@ -103,7 +103,6 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre, related_name='titles',
         verbose_name='Жанр',
-        # through='TitleGenre'
     )
     category = models.ForeignKey(
         Category,
@@ -123,14 +122,6 @@ class Title(models.Model):
 
     def get_rating(self):
         return self.reviews.aggregate(Avg('score'))['score__avg']
-
-
-# class TitleGenre(models.Model):
-#     title = models.ForeignKey(Title, on_delete=models.CASCADE)
-#     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-
-#     def __str__(self):
-#         return f'{self.title} {self.genre}'
 
 
 class Review(models.Model):
