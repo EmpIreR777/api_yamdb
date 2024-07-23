@@ -31,4 +31,4 @@ class Command(BaseCommand):
                         continue
                     objs.append(model(**data))
                 model.objects.bulk_create(objs)
-        self.stdout.write(self.style.SUCCESS('Data successfully imported'))
+        self.stdout.write(self.style.SUCCESS('Данные успешно загружены в БД'))

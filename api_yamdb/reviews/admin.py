@@ -1,6 +1,10 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
 
-from .models import Title, Category, Comment, Review, Genre
+from .models import Category, Comment, Genre, Review, Title
+
+User = get_user_model()
 
 
 admin.site.site_header = "Сайт отзывов, на разные произведения"
@@ -78,3 +82,18 @@ class GenreAdmin(admin.ModelAdmin):
     )
     search_fields = ('name',)
     list_filter = ('name',)
+
+
+@admin.register(User)
+class UserAdmin(UserAdmin):
+    list_display = (
+        'username',
+        'email',
+        'role',
+        'bio',
+        'first_name',
+        'last_name',
+
+    )
+    search_fields = ('username', 'role',)
+    list_filter = ('username',)
