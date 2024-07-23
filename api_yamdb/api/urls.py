@@ -3,12 +3,12 @@ from django.urls import include, path
 
 from .views import (
     CategoryViewSet,
+    CommentViewSet,
+    ConfirmRegistrationView,
     GenreViewSet,
     TitleViewSet,
     ReviewViewSet,
-    CommentViewSet,
     UserRegistrationView,
-    ConfirmRegistrationView,
     UserSelfView,
     UserViewSet
 )
