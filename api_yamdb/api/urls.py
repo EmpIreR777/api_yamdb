@@ -3,10 +3,14 @@ from django.urls import include, path
 
 from .views import (
     CategoryViewSet,
+    CommentViewSet,
+    ConfirmRegistrationView,
     GenreViewSet,
     TitleViewSet,
     ReviewViewSet,
-    CommentViewSet,
+    UserRegistrationView,
+    UserSelfView,
+    UserViewSet
 )
 
 
@@ -26,7 +30,18 @@ v1_router.register(
     CommentViewSet,
     basename='comments',
 )
+v1_router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
+    path(
+        'v1/auth/signup/', UserRegistrationView.as_view(),
+        name='signup'
+    ),
+    path(
+        'v1/auth/token/', ConfirmRegistrationView.as_view(),
+        name='confirm_registration'
+    ),
+    path('v1/users/me/', UserSelfView.as_view(),
+         name='user-self'),
     path('v1/', include(v1_router.urls)),
 ]
