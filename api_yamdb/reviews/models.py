@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 
-from api.validators import validate_not_me
+from api.validators import validate_username
 
 
 class CustomUser(AbstractUser):
@@ -22,7 +22,7 @@ class CustomUser(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        validators=[validate_not_me],
+        validators=[validate_username],
         error_messages={
             'unique': 'Пользователь с таким именем уже существует.',
         },
@@ -36,7 +36,8 @@ class CustomUser(AbstractUser):
     )
     confirmation_code = models.CharField(max_length=10, blank=True, null=True)
 
-    REQUIRED_FIELDS = ['email']
+    class Meta:
+        ordering = ['username']
 
     def __str__(self):
         return self.username
@@ -48,9 +49,6 @@ class CustomUser(AbstractUser):
     @property
     def is_moderator(self):
         return self.role == self.MODERATOR
-
-    class Meta:
-        ordering = ['username']
 
 
 class Category(models.Model):
