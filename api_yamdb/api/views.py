@@ -147,7 +147,7 @@ class UserRegistrationView(APIView):
     Отправляет код подтверждения на указанный email.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = (AllowAny,)
 
     def post(self, request):
         required_fields = ['email', 'username']
@@ -216,7 +216,7 @@ class ConfirmRegistrationView(APIView):
     и возвращает токен доступа.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = (AllowAny,)
 
     def post(self, request):
         username = request.data.get('username')
@@ -264,36 +264,12 @@ class UserViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    permission_classes = (IsAuthenticated, IsAdmin)
     queryset = User.objects.all()
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ['username', 'email', 'first_name', 'last_name']
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
-    def update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserSelfView(APIView):
@@ -304,7 +280,7 @@ class UserSelfView(APIView):
     Доступно только для аутентифицированных пользователей.
     """
 
-    permission_classes = [IsAuthenticated, IsAuthor]
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         serializer = UserSerializer(request.user)
