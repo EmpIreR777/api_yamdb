@@ -8,10 +8,6 @@ from django.conf import settings
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
-from django.conf import settings
-from dotenv import load_dotenv, find_dotenv
-
-load_dotenv(find_dotenv())
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
