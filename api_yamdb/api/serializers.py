@@ -1,8 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import Category, Genre, Title, Review, Comment
+
+User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -76,3 +79,29 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = 'id', 'text', 'author', 'pub_date', 'review', 'author'
         model = Comment
+
+
+class BaseUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name',
+                  'last_name', 'bio', 'role']
+
+
+class UserRegistrationSerializer(BaseUserSerializer):
+
+    class Meta(BaseUserSerializer.Meta):
+        pass
+
+
+class UserSerializer(BaseUserSerializer):
+
+    class Meta(BaseUserSerializer.Meta):
+        pass
+
+
+class UserUpdateSerializer(BaseUserSerializer):
+
+    class Meta(BaseUserSerializer.Meta):
+        fields = ['username', 'email', 'first_name', 'last_name', 'bio']

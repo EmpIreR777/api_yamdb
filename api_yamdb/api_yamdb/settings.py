@@ -1,7 +1,13 @@
 import os
 from datetime import timedelta
+import os
+from datetime import timedelta
 from pathlib import Path
 
+from django.conf import settings
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv(find_dotenv())
 from django.conf import settings
 from dotenv import load_dotenv, find_dotenv
 
@@ -10,6 +16,7 @@ load_dotenv(find_dotenv())
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ['SECRET_KEY']
 SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -32,7 +39,6 @@ INSTALLED_APPS = [
     'django_filters',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
-    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -98,6 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 
 LANGUAGE_CODE = 'ru-RU'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
 
@@ -114,7 +121,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'reviews.CustomUser'
 
 # Настройки для локальной отправки почты (для тестирования)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

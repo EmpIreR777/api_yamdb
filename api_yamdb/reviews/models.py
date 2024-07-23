@@ -1,10 +1,53 @@
 from django.db import models
 from django.db.models import Avg
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 
-User = get_user_model()
+from api.validators import validate_username
+
+
+class CustomUser(AbstractUser):
+
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+
+    ROLE_CHOICES = [
+        (USER, 'User'),
+        (MODERATOR, 'Moderator'),
+        (ADMIN, 'Admin'),
+    ]
+
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        validators=[validate_username],
+        error_messages={
+            'unique': 'Пользователь с таким именем уже существует.',
+        },
+    )
+    email = models.EmailField(unique=True, max_length=254)
+    role = models.CharField(
+        'Роль', max_length=20, choices=ROLE_CHOICES, default=USER
+    )
+    bio = models.TextField(
+        'Биография', blank=True, null=True
+    )
+
+    class Meta:
+        ordering = ['username']
+
+    def __str__(self):
+        return self.username
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN or self.is_superuser
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
 
 
 class Category(models.Model):
@@ -98,7 +141,7 @@ class Review(models.Model):
         max_length=200
     )
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        CustomUser, on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='автор'
     )
@@ -119,7 +162,8 @@ class Review(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'],
-                name='title_author'),]
+                name='title_author'),
+        ]
 
     def __str__(self):
         return f'{self.author}: {self.text}'[:50]
@@ -137,7 +181,7 @@ class Comment(models.Model):
         max_length=200,
         verbose_name='Текс')
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='автор'
