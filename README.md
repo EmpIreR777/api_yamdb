@@ -131,3 +131,8 @@ URL: http://127.0.0.1:8000/api/v1/titles/37/
 [Сафронов Кирилл](https://github.com/EmpIreR777) |
 [Самофалов Федор](https://github.com/FedorSamofalov) |
 [Кунин Александр](https://github.com/K-u-n-i-n)
+
+## Над проектом работали:
+[Сафронов Кирилл](https://github.com/EmpIreR777) |
+[Самофалов Федор](https://github.com/FedorSamofalov) |
+[Кунин Александр](https://github.com/K-u-n-i-n)
