@@ -16,9 +16,9 @@ from .permissions import (
     IsAdminOrReadOnly, IsAuthorOrReadOnly, IsAdmin
 )
 from .serializers import (
-    CategorySerializer, CommentSerializer, GenreSerializer,
-    ReviewSerializer, TitleSerializer, UserRegistrationSerializer,
-    UserSerializer, UserUpdateSerializer
+    CategorySerializer, CommentSerializer, ConfirmRegistrationSerializer,
+    GenreSerializer, ReviewSerializer, TitleSerializer,
+    UserRegistrationSerializer, UserSerializer, UserUpdateSerializer
 )
 from reviews.models import Category, Genre, Review, Title
 
@@ -146,57 +146,38 @@ class UserRegistrationView(APIView):
     """
 
     permission_classes = (AllowAny,)
+    serializer_class = UserRegistrationSerializer
 
     def post(self, request):
-        required_fields = ['email', 'username']
-        missing_fields = [
-            field for field in required_fields if not request.data.get(field)
-        ]
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            username = serializer.validated_data['username']
 
-        if missing_fields:
+            user = User.objects.filter(email=email).first()
+            if user:
+                confirmation_code = default_token_generator.make_token(user)
+            else:
+                user = User.objects.create_user(username=username, email=email)
+                user.is_active = False
+                user.save()
+                confirmation_code = default_token_generator.make_token(user)
+
+            send_mail(
+                'Подтверждение регистрации',
+                f'Ваш код подтверждения: {confirmation_code}',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
             return Response(
-                {field: ['Это поле обязательно для заполнения.']
-                    for field in missing_fields},
-                status=status.HTTP_400_BAD_REQUEST
+                {'email': user.email, 'username': user.username},
+                status=status.HTTP_200_OK
             )
-
-        email = request.data.get('email')
-        username = request.data.get('username')
-
-        user = User.objects.filter(email=email).first()
-        if user:
-            if User.objects.filter(username=username).first():
-                user.username = username
-                confirmation_code = default_token_generator.make_token(user)
-            else:
-                return Response(
-                    {'error': 'Такой email или username уже существует.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
         else:
-            serializer = UserRegistrationSerializer(
-                data=request.data
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-            if serializer.is_valid():
-                user = serializer.save()
-                confirmation_code = default_token_generator.make_token(user)
-            else:
-                return Response(
-                    serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                )
-
-        send_mail(
-            'Подтверждение регистрации',
-            f'Ваш код подтверждения: {confirmation_code}',
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
-        return Response(
-            {'email': user.email, 'username': user.username},
-            status=status.HTTP_200_OK
-        )
 
 
 class ConfirmRegistrationView(APIView):
@@ -213,34 +194,37 @@ class ConfirmRegistrationView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        username = request.data.get('username')
-        confirmation_code = request.data.get('confirmation_code')
+        serializer = ConfirmRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            confirmation_code = serializer.validated_data['confirmation_code']
 
-        if not username or not confirmation_code:
-            return Response(
-                {'error': 'Отсутствует обязательное поле или оно некорректно'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            try:
+                user = User.objects.get(username=username)
+                if not default_token_generator.check_token(
+                    user, confirmation_code
+                ):
+                    return Response(
+                        {'error': 'Неправильный код подтверждения'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                user.is_active = True
+                user.save()
 
-        try:
-            user = User.objects.get(username=username)
-            if not default_token_generator.check_token(user, confirmation_code):
+                access_token = AccessToken.for_user(user)
+
                 return Response(
-                    {'error': 'Неправильный код подтверждения'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {'token': str(access_token)},
+                    status=status.HTTP_200_OK
                 )
-
-            access_token = AccessToken.for_user(user)
-
-            return Response(
-                {'token': str(access_token)},
-                status=status.HTTP_200_OK
-            )
-        except User.DoesNotExist:
-            return Response(
-                {'error': 'Пользователь не найден'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            except User.DoesNotExist:
+                return Response(
+                    {'error': 'Пользователь не найден'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
