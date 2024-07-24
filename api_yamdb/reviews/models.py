@@ -120,9 +120,6 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-    def get_rating(self):
-        return self.reviews.aggregate(Avg('score'))['score__avg']
-
 
 class Review(models.Model):
     """Отзыв к произведению."""
