@@ -67,11 +67,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorOrReadOnly,)
-
-    def update(self, request, *args, **kwargs):
-        if not kwargs.get('partial'):
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_title(self):
         return get_object_or_404(
@@ -91,11 +87,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
-    def update(self, request, *args, **kwargs):
-        if not kwargs.get('partial'):
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
 
     def get_review(self):
         return get_object_or_404(
