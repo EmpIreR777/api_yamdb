@@ -46,8 +46,6 @@ class GenreViewSet(CreateListDeleteViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Получение произведения, частичное обновление, добавление и удаление."""
 
-    queryset = Title.objects.all().select_related(
-        'category').prefetch_related('genre')
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -59,7 +57,8 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
     def get_queryset(self):
-        return Title.objects.annotate(rating=Avg('reviews__score'))
+        return Title.objects.all().select_related('category').prefetch_related(
+            'genre').annotate(rating=Avg('reviews__score'))
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

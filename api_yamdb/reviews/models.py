@@ -121,17 +121,6 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-    def get_rating(self):
-        return self.reviews.aggregate(Avg('score'))['score__avg']
-
-
-# class TitleGenre(models.Model):
-#     title = models.ForeignKey(Title, on_delete=models.CASCADE)
-#     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-
-#     def __str__(self):
-#         return f'{self.title} {self.genre}'
-
 
 class Review(models.Model):
     """Отзыв к произведению."""
