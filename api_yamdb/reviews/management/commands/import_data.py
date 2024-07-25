@@ -4,11 +4,11 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title, CustomUser
 
 
 TABLES = {
-    User: 'users.csv',
+    CustomUser: 'users.csv',
     Category: 'category.csv',
     Genre: 'genre.csv',
     Title: 'titles.csv',
