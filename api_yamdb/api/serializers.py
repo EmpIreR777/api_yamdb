@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers
+from rest_framework import serializers, status
 
-from reviews.models import Category, Genre, Title, Review, Comment
-from .validators import validate_username
+from reviews.models import Category, Comment, Genre, Title, Review
+from reviews.validators import CustomValidationError, validate_username
 
 User = get_user_model()
 
@@ -96,14 +97,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'first_name',
-                  'last_name', 'bio', 'role']
-
-
-class UserRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, max_length=254)
     username = serializers.CharField(
         required=True, max_length=150, validators=[validate_username]
@@ -111,43 +104,89 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'username']
+        fields = ('email', 'username')
 
     def validate(self, data):
         email = data.get('email')
         username = data.get('username')
 
-        user_with_email = User.objects.filter(email=email).first()
-        user_with_username = User.objects.filter(username=username).first()
+        user_with_email = User.objects.filter(email=email).exists()
+        user_with_username = User.objects.filter(username=username).exists()
+        user_email_first = User.objects.filter(email=email).first()
+        user_username_first = User.objects.filter(username=username).first()
 
-        if user_with_email and user_with_username:
-            if user_with_email != user_with_username:
-                raise serializers.ValidationError(
-                    'Email и Username принадлежат разным пользователям.'
-                )
-        elif user_with_email:
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует.'
-            )
-        elif user_with_username:
-            raise serializers.ValidationError(
-                'Пользователь с таким username уже существует.'
-            )
+        errors = {}
+        if user_email_first and user_username_first:
+            if user_email_first != user_username_first:
+                errors['email'] = 'Email принадлежит другому пользователю.'
+                errors['username'] = 'Username принадлежит другому пол-лю.'
+                raise serializers.ValidationError(errors)
+
+        elif user_with_email and not user_with_username:
+            errors['email'] = 'Пользователь с таким email существует.'
+            raise serializers.ValidationError(errors)
+
+        elif not user_with_email and user_with_username:
+            errors['username'] = 'Пользователь с таким username существует.'
+            raise serializers.ValidationError(errors)
+
         return data
+
+
+class UserRegistrationSerializer(BaseUserSerializer):
+
+    class Meta(BaseUserSerializer.Meta):
+        fields = ('email', 'username')
 
 
 class ConfirmRegistrationSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     confirmation_code = serializers.CharField()
 
+    def validate(self, data):
+        username = data.get('username')
+        confirmation_code = data.get('confirmation_code')
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise CustomValidationError(
+                {'username': 'Пользователь не найден'},
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        if not default_token_generator.check_token(user, confirmation_code):
+            raise CustomValidationError(
+                {'confirmation_code': 'Неправильный код подтверждения'},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        data['user'] = user
+        return data
+
 
 class UserSerializer(BaseUserSerializer):
+    email = serializers.EmailField(
+        required=True,
+        max_length=254,
+    )
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+        validators=[validate_username]
+    )
 
-    class Meta(BaseUserSerializer.Meta):
-        pass
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
 
 
-class UserUpdateSerializer(BaseUserSerializer):
+class UserUpdateSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(read_only=True)
 
-    class Meta(BaseUserSerializer.Meta):
-        fields = ['username', 'email', 'first_name', 'last_name', 'bio']
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
