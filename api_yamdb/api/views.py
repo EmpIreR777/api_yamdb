@@ -90,7 +90,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
-
     def get_review(self):
         return get_object_or_404(
             Review, id=self.kwargs.get('review_id'))
