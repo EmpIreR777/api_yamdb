@@ -4,8 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 
-from .validators import validate_year_not_future
-from api.validators import validate_username
+from .validators import validate_year_not_future, validate_username
 
 
 class CustomUser(AbstractUser):
@@ -32,9 +31,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(
         'Роль', max_length=20, choices=ROLE_CHOICES, default=USER
     )
-    bio = models.TextField(
-        'Биография', blank=True, null=True
-    )
+    bio = models.TextField('Биография', blank=True)
 
     class Meta:
         ordering = ['username']
@@ -119,9 +116,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-
-    def get_rating(self):
-        return self.reviews.aggregate(Avg('score'))['score__avg']
 
 
 class Review(models.Model):

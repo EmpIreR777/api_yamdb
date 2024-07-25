@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin as UAdmin
 
 from .models import Category, Comment, Genre, Review, Title
 
@@ -85,7 +85,7 @@ class GenreAdmin(admin.ModelAdmin):
 
 
 @admin.register(User)
-class UserAdmin(UserAdmin):
+class UserAdmin(UAdmin):
     list_display = (
         'username',
         'email',
