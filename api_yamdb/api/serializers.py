@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -33,10 +34,30 @@ class TitleCreateUpdateSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         slug_field='slug'
     )
+    rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['category'] = {
+            'name': instance.category.name,
+            'slug': instance.category.slug,
+        }
+        data['genre'] = [
+            {
+                'name': genre.name,
+                'slug': genre.slug,
+            } for genre in instance.genre.all()
+        ]
+        if self.context['request'].stream.method == 'PATCH':
+            data['rating'] = instance.rating
+        else:
+            data['rating'] = None
+        return data
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -48,10 +69,8 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id', 'name', 'year', 'rating',
-            'description', 'genre', 'category'
-        )
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
