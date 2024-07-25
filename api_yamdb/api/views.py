@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets, status
@@ -23,6 +24,7 @@ from .serializers import (
     UserUpdateSerializer
 )
 from reviews.models import Category, Genre, Review, Title
+from reviews.validators import CustomValidationError
 
 User = get_user_model()
 
@@ -124,34 +126,38 @@ class UserRegistrationView(APIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            username = serializer.validated_data['username']
+        if not serializer.is_valid():
+            errors = {}
+            for field, messages in serializer.errors.items():
+                if field == 'non_field_errors':
+                    errors['field_name'] = messages
+                else:
+                    errors[field] = messages
+            errors = {k: v for k, v in errors.items() if v}
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
-            user = User.objects.filter(email=email).first()
-            if user:
-                confirmation_code = default_token_generator.make_token(user)
-            else:
-                user = User.objects.create_user(username=username, email=email)
-                user.is_active = False
-                user.save()
-                confirmation_code = default_token_generator.make_token(user)
+        email = serializer.validated_data['email']
+        username = serializer.validated_data['username']
 
-            send_mail(
-                'Подтверждение регистрации',
-                f'Ваш код подтверждения: {confirmation_code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-            return Response(
-                {'email': user.email, 'username': user.username},
-                status=status.HTTP_200_OK
-            )
+        user = User.objects.filter(email=email).first()
+        if user:
+            confirmation_code = default_token_generator.make_token(user)
         else:
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+            user = User.objects.create_user(username=username, email=email)
+            user.is_active = False
+            user.save()
+            confirmation_code = default_token_generator.make_token(user)
+
+        send_mail(
+            'Подтверждение регистрации',
+            f'Ваш код подтверждения: {confirmation_code}',
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+        response_serializer = self.serializer_class(user)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 class ConfirmRegistrationView(APIView):
@@ -166,39 +172,30 @@ class ConfirmRegistrationView(APIView):
     """
 
     permission_classes = (AllowAny,)
+    serializer_class = ConfirmRegistrationSerializer
 
-    def post(self, request):
-        serializer = ConfirmRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            confirmation_code = serializer.validated_data['confirmation_code']
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+            user.is_active = True
+            user.save()
 
-            try:
-                user = User.objects.get(username=username)
-                if not default_token_generator.check_token(
-                    user, confirmation_code
-                ):
-                    return Response(
-                        {'error': 'Неправильный код подтверждения'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                user.is_active = True
-                user.save()
+            access_token = AccessToken.for_user(user)
 
-                access_token = AccessToken.for_user(user)
-
-                return Response(
-                    {'token': str(access_token)},
-                    status=status.HTTP_200_OK
-                )
-            except User.DoesNotExist:
-                return Response(
-                    {'error': 'Пользователь не найден'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-        return Response(
-            serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+            return Response(
+                {'token': str(access_token)},
+                status=status.HTTP_200_OK
+            )
+        except CustomValidationError as e:
+            return Response(
+                e.detail, status=e.status_code
+            )
+        except ValidationError as e:
+            return Response(
+                e.detail, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class UserViewSet(viewsets.ModelViewSet):
