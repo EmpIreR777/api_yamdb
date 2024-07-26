@@ -3,6 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from reviews.models import Category, Comment, Genre, Title, Review
 from reviews.validators import validate_username
@@ -137,7 +138,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
                 errors['username'] = 'Username принадлежит другому пол-лю.'
                 raise serializers.ValidationError(errors)
 
-        elif user_with_email and not user_with_username:
+        elif not user_with_username and user_with_email:
             errors['email'] = 'Пользователь с таким email существует.'
             raise serializers.ValidationError(errors)
 
@@ -161,10 +162,15 @@ class ConfirmRegistrationSerializer(serializers.Serializer):
     def validate(self, data):
         username = data.get('username')
         confirmation_code = data.get('confirmation_code')
-        user = get_object_or_404(User, username=username)
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise NotFound(detail='Пользователь не найден.')
 
         if not default_token_generator.check_token(user, confirmation_code):
-            raise serializers.ValidationError('Неправильный код подтверждения')
+            raise serializers.ValidationError(
+                'Неправильный код подтверждения.')
 
         data['user'] = user
         return data
