@@ -23,7 +23,7 @@ from .serializers import (
     TitleCreateUpdateSerializer, UserRegistrationSerializer, UserSerializer,
     UserUpdateSerializer
 )
-from reviews.models import Category, Genre, Review, Title
+from reviews.models import Category, Genre, Title
 
 User = get_user_model()
 
