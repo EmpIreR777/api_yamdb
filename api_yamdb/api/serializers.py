@@ -2,10 +2,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers, status
+from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Title, Review
-from reviews.validators import CustomValidationError, validate_username
+from reviews.validators import validate_username
 
 User = get_user_model()
 
@@ -161,20 +161,10 @@ class ConfirmRegistrationSerializer(serializers.Serializer):
     def validate(self, data):
         username = data.get('username')
         confirmation_code = data.get('confirmation_code')
-
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            raise CustomValidationError(
-                {'username': 'Пользователь не найден'},
-                status_code=status.HTTP_404_NOT_FOUND
-            )
+        user = get_object_or_404(User, username=username)
 
         if not default_token_generator.check_token(user, confirmation_code):
-            raise CustomValidationError(
-                {'confirmation_code': 'Неправильный код подтверждения'},
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
+            raise serializers.ValidationError('Неправильный код подтверждения')
 
         data['user'] = user
         return data
