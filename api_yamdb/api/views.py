@@ -23,7 +23,7 @@ from .serializers import (
     TitleCreateUpdateSerializer, UserRegistrationSerializer, UserSerializer,
     UserUpdateSerializer
 )
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
@@ -90,10 +90,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_review(self):
-        title = get_object_or_404(
-            Title, id=self.kwargs.get('title_id'))
         return get_object_or_404(
-            title.reviews, id=self.kwargs.get('review_id'))
+            Review, id=self.kwargs.get('review_id'),
+            title_id=self.kwargs.get('title_id')
+        )
 
     def get_queryset(self):
         review = self.get_review()
@@ -119,7 +119,15 @@ class UserRegistrationView(APIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            errors = {}
+            for field, messages in serializer.errors.items():
+                if field == 'non_field_errors':
+                    errors['field_name'] = messages
+                else:
+                    errors[field] = messages
+            errors = {k: v for k, v in errors.items() if v}
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
         email = serializer.validated_data['email']
         username = serializer.validated_data['username']
@@ -173,8 +181,14 @@ class ConfirmRegistrationView(APIView):
                 {'token': str(access_token)},
                 status=status.HTTP_200_OK
             )
+        except CustomValidationError as e:
+            return Response(
+                e.detail, status=e.status_code
+            )
         except ValidationError as e:
-            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                e.detail, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -213,6 +227,7 @@ class UserSelfView(APIView):
     def patch(self, request):
         serializer = UserUpdateSerializer(
             request.user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
